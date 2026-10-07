@@ -260,6 +260,48 @@ article.cours p.chute{font-family:var(--display);font-style:italic;font-weight:6
 .tk:hover .ticket,.tk.peeking .ticket{border-color:#D0141F;animation:alerte .5s steps(1) infinite}
 @keyframes alerte{50%{background:color-mix(in srgb,#D0141F 16%,var(--paper))}}
 
+/* ---------- Le bouton rouge ---------- */
+.alarme-zone{display:flex;flex-direction:column;align-items:center;gap:12px;margin:34px 0 0;text-align:center}
+.socle{padding:13px;border-radius:50%;background:repeating-linear-gradient(45deg,#F5C400 0 11px,#1B1B1B 11px 22px);box-shadow:0 10px 24px -10px rgba(0,0,0,.6)}
+.big-red{display:grid;place-items:center;width:128px;height:128px;border-radius:50%;border:0;cursor:pointer;color:#fff;padding:0 14px;
+  font:800 .95rem/1.05 system-ui,-apple-system,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 1px 2px rgba(0,0,0,.45);
+  background:radial-gradient(circle at 36% 30%,#FF7A7A,#D0141F 46%,#7A0710 100%);box-shadow:0 8px 0 #4E040A,inset 0 -6px 12px rgba(0,0,0,.35);transition:transform .08s,box-shadow .08s}
+.big-red:active{transform:translateY(6px);box-shadow:0 2px 0 #4E040A,inset 0 -4px 10px rgba(0,0,0,.35)}
+.alarme-zone p{margin:0;color:var(--ink-soft);font-style:italic;font-size:.95rem}
+
+/* ---------- L'alarme ---------- */
+.alarme{position:fixed;inset:0;z-index:100;display:none;place-items:center;overflow:auto;color:#fff;background:#2E0005;padding:44px 0}
+.alarme.on{display:grid}
+.alarme::before{content:"";position:fixed;inset:0;background:#E0101E;opacity:.35;pointer-events:none}
+.gyro{position:fixed;top:-90px;width:240px;height:240px;border-radius:50%;pointer-events:none;
+  background:conic-gradient(rgba(255,50,50,.95),transparent 22%,transparent 50%,rgba(255,50,50,.95) 50%,transparent 72%);filter:blur(8px)}
+.gyro.l{left:-90px}.gyro.r{right:-90px}
+.hazard{position:fixed;left:0;right:0;height:26px;background:repeating-linear-gradient(-45deg,#F5C400 0 18px,#111 18px 36px);z-index:3}
+.hazard.t{top:0}.hazard.b{bottom:0}
+.alarme-panel{position:relative;z-index:2;width:calc(100% - 32px);max-width:560px;text-align:center}
+.alarme .sur{margin:0;font:700 .95rem/1.2 system-ui,-apple-system,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#FFD84D}
+.alarme h2{margin:4px 0 6px;font:900 clamp(2.6rem,13vw,4.6rem)/1 system-ui,-apple-system,sans-serif;letter-spacing:.06em;text-transform:uppercase;text-shadow:0 0 22px #FF1A1A}
+.alarme .sous{margin:0 0 12px;font-size:1.1rem}
+.alarme .cd{display:inline-block;margin:0 0 18px;padding:10px 16px;border:2px solid #FF3B3B;border-radius:10px;background:#000;color:#FF3B3B;
+  font:800 clamp(1.25rem,5.6vw,2rem)/1.1 ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;text-shadow:0 0 10px #FF0000}
+.alarme .face{width:min(290px,72vw);height:calc(min(290px,72vw)*.83);margin:0 auto;overflow:hidden;border-bottom:7px solid #F5C400}
+.alarme .face img{display:block;width:100%;height:auto;transform:translateY(103%)}
+.alarme .legende{margin:10px 0 18px;font-family:"Caveat","Bradley Hand","Comic Sans MS",cursive;font-weight:700;font-size:1.7rem}
+.alarme .stop{font:700 1rem system-ui,-apple-system,sans-serif;background:#fff;color:#8E1C2C;border:0;border-radius:999px;padding:14px 26px;cursor:pointer}
+.alarme.on .face img{animation:monte 1.1s .35s cubic-bezier(.3,1.3,.5,1) forwards,guette 2.2s 1.6s ease-in-out infinite}
+@keyframes monte{to{transform:translateY(0)}}
+@media (prefers-reduced-motion:no-preference){
+  .alarme::before{animation:flashR .5s steps(1) infinite}
+  .gyro{animation:tourne .8s linear infinite}
+  .hazard{animation:defile .9s linear infinite}
+  .alarme h2{animation:clign .5s steps(1) infinite}
+  .alarme.on .alarme-panel{animation:secoue .45s ease-in-out 2}
+  @keyframes flashR{50%{opacity:.75}}
+  @keyframes tourne{to{transform:rotate(1turn)}}
+  @keyframes defile{to{background-position:50.9px 0}}
+  @keyframes clign{50%{color:#FFD84D}}
+  @keyframes secoue{0%,100%{transform:none}20%{transform:translate(-8px,3px) rotate(-1deg)}40%{transform:translate(7px,-3px) rotate(1deg)}60%{transform:translate(-5px,2px)}80%{transform:translate(4px,-1px)}}
+}
 footer{border-top:1px solid var(--line);margin-top:56px;padding:26px 0 34px;color:var(--ink-soft);font-size:.9rem;text-align:center}
 footer svg{width:90px;height:14px;color:var(--or);display:block;margin:0 auto 10px}
 </style>
@@ -419,6 +461,7 @@ function renderHome(){
       <h2 class="sec">Prochaines échéances</h2>
       <p class="sec-sub">Le compte à rebours avant les épreuves blanches.</p>
       <div class="toile">${toileSVG()}<div class="tickets">${tickets}</div></div>
+      <div class="alarme-zone"><div class="socle"><button class="big-red" type="button" id="boutonRouge">Ne pas appuyer</button></div><p>Sérieusement. N'appuie pas.</p></div>
     </section>
     <section class="block">
       <h2 class="sec">Les parcours</h2>
@@ -434,6 +477,7 @@ function renderHome(){
     app.querySelectorAll('.tk').forEach(x=>x.classList.remove('peeking'));
     if(on) t.classList.add('peeking');
   }));
+  document.getElementById('boutonRouge').onclick = alarme;
   tick();
 }
 
@@ -508,6 +552,12 @@ function tick(){
     J.textContent = Math.floor(ms/86400000);
     L.innerHTML = `Encore ${Math.floor(ms/86400000)} j<br><b>${duree(ms%86400000,1)}</b>`;
   });
+  const cd = document.getElementById('alarmeCd');
+  if(cd && document.getElementById('alarme').classList.contains('on')){
+    const now2 = Date.now(), e = EVENTS.find(x=>new Date(x.date).getTime()>now2);
+    document.getElementById('alarmeQuoi').textContent = e ? `${e.what} dans :` : "Plus d'épreuve blanche… pour l'instant.";
+    cd.textContent = e ? duree(new Date(e.date).getTime()-now2) : '—';
+  }
 }
 function duree(ms,sansJ){
   const p = n => String(n).padStart(2,'0');
@@ -515,7 +565,36 @@ function duree(ms,sansJ){
 }
 setInterval(tick, 1000);
 
-
+/* ---------- Alarme ---------- */
+function alarme(){
+  let el = document.getElementById('alarme');
+  if(!el){
+    el = document.createElement('div'); el.id='alarme'; el.className='alarme';
+    el.setAttribute('role','alertdialog'); el.setAttribute('aria-modal','true'); el.setAttribute('aria-label','Alerte bac de français');
+    el.innerHTML = `<div class="hazard t"></div><div class="hazard b"></div><div class="gyro l"></div><div class="gyro r"></div>
+      <div class="alarme-panel">
+        <p class="sur">⚠ Alerte générale ⚠</p>
+        <h2>Danger</h2>
+        <p class="sous" id="alarmeQuoi"></p>
+        <div class="cd" id="alarmeCd"></div>
+        <div class="face"><img src="${PROF}" alt="M. Herczeg qui vous observe"></div>
+        <p class="legende">M. Herczeg vous observe…</p>
+        <button class="stop" type="button">J'ai compris, je vais réviser</button>
+      </div>`;
+    document.body.appendChild(el);
+    el.querySelector('.stop').onclick = finAlarme;
+  }
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  document.documentElement.style.overflow='hidden';
+  tick();
+  el.querySelector('.stop').focus({preventScroll:true});
+}
+function finAlarme(){
+  const el = document.getElementById('alarme'); if(!el || !el.classList.contains('on')) return;
+  el.classList.remove('on'); document.documentElement.style.overflow='';
+  const b = document.getElementById('boutonRouge'); if(b) b.focus({preventScroll:true});
+}
+addEventListener('keydown',e=>{ if(e.key==='Escape') finAlarme(); });
 
 /* ---------- Recherche ---------- */
 const norm = s => s.toLowerCase().replace(/[’`]/g,"'").normalize('NFD').replace(/[\u0300-\u036f]/g,'');
