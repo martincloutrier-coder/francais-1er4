@@ -247,17 +247,22 @@ article.cours p.chute{font-family:var(--display);font-style:italic;font-weight:6
 @media (max-width:600px){.tk{--pw:124px}.tickets{row-gap:48px}}
 .tk .ticket{z-index:2}
 .peek-box{position:absolute;right:18px;bottom:calc(100% - 4px);width:var(--pw);height:calc(var(--pw)*.83);overflow:hidden;z-index:1;pointer-events:none}
-.peek-box img{display:block;width:100%;height:auto;transform:translateY(103%);transition:transform .55s cubic-bezier(.3,1.35,.5,1)}
-.tk:hover .peek-box img,.tk.peeking .peek-box img{transform:translateY(0);animation:guette 2.6s .7s ease-in-out infinite}
+.peek-box img{display:block;width:100%;height:auto;transform:translateY(calc(var(--pw)*.83 - 13px));transition:transform .55s cubic-bezier(.3,1.35,.5,1)}
+@media (prefers-reduced-motion:no-preference){
+  .peek-box img{animation:tease 7s ease-in-out infinite}
+  .tk:nth-child(2) .peek-box img{animation-delay:3.5s}
+  @keyframes tease{0%,80%,100%{transform:translateY(calc(var(--pw)*.83 - 13px))}85%{transform:translateY(calc(var(--pw)*.5))}88%{transform:translateY(calc(var(--pw)*.53))}91%{transform:translateY(calc(var(--pw)*.5))}95%{transform:translateY(calc(var(--pw)*.83 - 13px))}}
+}
+.tk:hover .peek-box img,.tk.peeking .peek-box img,.tk.auto .peek-box img{transform:translateY(0);animation:guette 2.6s .7s ease-in-out infinite}
 @keyframes guette{0%,100%{translate:0 0}25%{translate:-5px 1px}55%{translate:5px 1px}}
 .bulle{position:absolute;z-index:3;right:calc(var(--pw) + 26px);bottom:calc(100% + var(--pw)*.42);background:#fff;color:#1B1B1B;border:2px solid #1B1B1B;border-radius:14px;padding:3px 11px 2px;
   font-family:"Caveat","Bradley Hand","Comic Sans MS",cursive;font-weight:700;font-size:1.3rem;line-height:1.1;white-space:nowrap;opacity:0;transform:scale(.5);transform-origin:right bottom;transition:opacity .2s,transform .25s;pointer-events:none}
 .bulle::after{content:"";position:absolute;right:-9px;bottom:6px;border:7px solid transparent;border-left:10px solid #1B1B1B}
-.tk:hover .bulle,.tk.peeking .bulle{opacity:1;transform:none;transition-delay:.5s}
+.tk:hover .bulle,.tk.peeking .bulle,.tk.auto .bulle{opacity:1;transform:none;transition-delay:.5s}
 .ticket .stamp{position:absolute;left:46%;top:40%;transform:translate(-50%,-50%) rotate(-12deg) scale(2.4);opacity:0;border:3px solid #D0141F;color:#D0141F;
   font:800 1.05rem/1 system-ui,-apple-system,sans-serif;letter-spacing:.2em;text-transform:uppercase;padding:5px 10px 4px;border-radius:6px;background:color-mix(in srgb,var(--paper) 80%,transparent);pointer-events:none;transition:opacity .2s,transform .25s cubic-bezier(.3,1.5,.5,1)}
-.tk:hover .stamp,.tk.peeking .stamp{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}
-.tk:hover .ticket,.tk.peeking .ticket{border-color:#D0141F;animation:alerte .5s steps(1) infinite}
+.tk:hover .stamp,.tk.peeking .stamp,.tk.auto .stamp{opacity:1;transform:translate(-50%,-50%) rotate(-12deg) scale(1)}
+.tk:hover .ticket,.tk.peeking .ticket,.tk.auto .ticket{border-color:#D0141F;animation:alerte .5s steps(1) infinite}
 @keyframes alerte{50%{background:color-mix(in srgb,#D0141F 16%,var(--paper))}}
 
 /* ---------- Le bouton rouge ---------- */
@@ -478,6 +483,7 @@ function renderHome(){
     if(on) t.classList.add('peeking');
   }));
   document.getElementById('boutonRouge').onclick = alarme;
+  autoPeek();
   tick();
 }
 
@@ -564,6 +570,24 @@ function duree(ms,sansJ){
   return `${sansJ?'':Math.floor(ms/86400000)+' j '}${p(Math.floor(ms/3600000)%24)} h ${p(Math.floor(ms/60000)%60)} min ${p(Math.floor(ms/1000)%60)} s`;
 }
 setInterval(tick, 1000);
+
+/* ---------- Le prof monte tout seul sur téléphone, un billet à la fois ---------- */
+let peekObs = null;
+function autoPeek(){
+  if(peekObs) peekObs.disconnect();
+  if(!matchMedia('(hover: none)').matches || !('IntersectionObserver' in window)) return;
+  const vus = new Set(), file = []; let occupe = false;
+  const suivant = ()=>{
+    if(occupe || !file.length) return;
+    const t = file.shift(); if(!t.isConnected) return suivant();
+    occupe = true; t.classList.add('auto');
+    setTimeout(()=>{ t.classList.remove('auto'); setTimeout(()=>{ occupe = false; suivant(); }, 700); }, 3200);
+  };
+  peekObs = new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting && !vus.has(e.target)){ vus.add(e.target); file.push(e.target); suivant(); }
+  }), {threshold:.75});
+  app.querySelectorAll('.tk').forEach(t=>peekObs.observe(t));
+}
 
 /* ---------- Alarme ---------- */
 function alarme(){
